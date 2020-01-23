@@ -1,0 +1,34 @@
+  - name: for jboss extract and configure
+    hosts: all
+    become: true
+    tasks:
+
+    - name:  to copy the zip file in /root location
+      copy:
+        src: /root/jboss-eap-7.2.0.zip
+        dest: /root
+
+   # - name: absent if dir exist
+   #   file:
+   #     dest: /ql/EAP-7.2.0
+   #     state: absent
+
+
+    - name: install unzip
+      yum:
+         name: unzip
+         state: installed
+
+    - name: create directory in /ql/EAP-7.2.1
+      file:
+          path: /ql/EAP-7.2.1
+          state: directory
+          mode: 775
+          recurse: yes
+          owner: svc-lean
+          group: svc-leangrp
+
+    - name: extract dir with EAP-7.2.1
+      unarchive:
+        src: /root/jboss-eap-7.2.0.zip
+        dest: /ql/EAP-7.2.1
