@@ -1,0 +1,178 @@
+https://mkyong.com/java/find-out-your-java-heap-memory-size/
+http://khaidoan.wikidot.com/java-memory-usage
+http://www.openkb.info/2014/06/how-to-check-java-memory-usage.html
+
+Find out your Java heap memory size
+mkyong.com/java/find-out-your-java-heap-memory-size
+
+By mkyong | March 8, 2014 | Updated: March 10, 2014
+Viewed: 521,705 | +1,958 pv/w
+
+
+In this article, we will show you how to use the -XX:+PrintFlagsFinal to find out your heap size detail. In Java, the default and maximum heap size are allocated based on this – ergonomics algorithm.
+
+Heap sizes
+Initial heap size of 1/64 of physical memory up to 1Gbyte
+Maximum heap size of 1/4 of physical memory up to 1Gbyte
+
+However, above algorithms are just for reference, it may vary in different VM.
+
+1. Java Memory Overview
+A quick review of Java memory structure :
+
+1. Java Heap Size
+Place to store objects created by your Java application, this is where Garbage Collection takes place, the memory used by your Java application. For a heavy Java process, insufficient Heap size will cause the popular java.lang.OutOfMemoryError: Java heap space.
+
+-Xms<size> - Set initial Java heap size
+-Xmx<size> - Set maximum Java heap size
+
+$ java -Xms512m -Xmx1024m JavaApp
+Copy
+2. Perm Gen Size
+Place to store your loaded class definition and metadata. If a large code-base project is loaded, the insufficient Perm Gen size will cause the popular Java.Lang.OutOfMemoryError: PermGen.
+
+-XX:PermSize<size> - Set initial PermGen Size.
+-XX:MaxPermSize<size> - Set the maximum PermGen Size.
+
+$ java -XX:PermSize=64m -XX:MaxPermSize=128m JavaApp
+Copy
+3. Java Stack Size
+Size of a Java thread. If a project has a lot of threads processing, try reduce this stack size to avoid running out of memory.
+-Xss = set java thread stack size
+
+$ java -Xss512k JavaApp
+Copy
+Note
+The default value for heap size, perm gen, or stack size is differ from different JVMs. The best practice is always defining your own value.
+
+2. Ubuntu
+This is the testing environment :
+
+OS  : Ubuntu 13 (64 bits) (Under VirtualBox)
+RAM : 4G
+CPU : 1 x Processors
+JDK : 1.7.0_51
+Copy
+$ java -XX:+PrintFlagsFinal -version | grep -iE 'HeapSize|PermSize|ThreadStackSize'
+            
+    uintx InitialHeapSize                          := 64781184        {product}   
+    uintx MaxHeapSize                              := 1038090240      {product} 
+    uintx PermSize                                  = 21757952        {pd product}
+    uintx MaxPermSize                               = 174063616       {pd product}
+     intx ThreadStackSize                           = 1024            {pd product}          
+java version "1.7.0_51"
+OpenJDK Runtime Environment (IcedTea 2.4.4) (7u51-2.4.4-0ubuntu0.13.10.1)
+OpenJDK 64-Bit Server VM (build 24.45-b08, mixed mode)
+Copy
+In above environment, JVM allocated following default values :
+
+Java heap size
+InitialHeapSize = 64781184 bytes (61.7M) and MaxHeapSize = 1038090240 bytes (990M).
+PermGen Size
+PermSize = 21757952 bytes (20.75M), MaxPermSize = 174063616 bytes (166M)
+Thread Stack Size
+ThreadStackSize = 1024 kilobytes (1M)
+The allocated heap memory size is quite close to the ergonomics result.
+
+#ergonomics algorithm 
+Initial heap size = 4096M/64 = 64M
+Maximum heap size = 4096M/4 = 1024M
+Copy
+3. Mac OSX
+This is the testing environment :
+
+OS  : Mac OSX 10.9
+RAM : 8G
+CPU : 4 x Processors
+JDK : 1.7.0_05
+Copy
+$ java -XX:+PrintFlagsFinal -version | grep -iE 'heapsize|permsize|threadstacksize'
+            
+    uintx InitialHeapSize                          := 20655360        {product}
+    uintx MaxHeapSize                              := 331350016       {product}
+    uintx PermSize                                  = 21757952        {pd product}
+    uintx MaxPermSize                               = 85983232        {pd product}
+     intx ThreadStackSize                           = 1024            {pd product}
+java version "1.7.0_05"
+Java(TM) SE Runtime Environment (build 1.7.0_05-b05)
+Java HotSpot(TM) 64-Bit Server VM (build 23.1-b03, mixed mode)
+Copy
+Java heap size
+InitialHeapSize = 20655360 bytes (19.69M) and MaxHeapSize = 331350016 bytes (316M).
+PermGen Size
+PermSize = 21757952 bytes (20.75M), MaxPermSize = 85983232 bytes (82M).
+Java Stack Size
+ThreadStackSize = 1024 kilobytes (1M)
+The allocated heap memory size is totally irrelevant if compare to the following ergonomics result.
+
+#ergonomics algorithm 
+Initial heap size = 8192M/64 = 128M
+Maximum heap size = 8192M/4 = 2048M
+Copy
+4. Windows
+There is no grep in Windows, instead, we use findstr.
+
+This is the testing environment :
+
+OS  : Windows 8
+RAM : 16G
+CPU : 8 x Processors
+JDK : 1.7.0_40
+Copy
+C:\>java -XX:+PrintFlagsFinal -version | findstr /i "HeapSize PermSize ThreadStackSize"
+    
+    uintx InitialHeapSize                          := 266634176       {product}
+    uintx MaxHeapSize                              := 4267704320      {product}
+    uintx PermSize                                  = 21757952        {pd product}
+    uintx MaxPermSize                               = 85983232        {pd product}
+     intx ThreadStackSize                           = 0               {pd product}
+java version "1.7.0_40"
+Java(TM) SE Runtime Environment (build 1.7.0_40-b43)
+Java HotSpot(TM) 64-Bit Server VM (build 24.0-b56, mixed mode)
+Copy
+Java heap size
+InitialHeapSize = 266634176 bytes (256M) and MaxHeapSize = 4266146816 bytes (4068M).
+PermGen Size
+PermSize = 21757952 bytes (20.75M), MaxPermSize = 85983232 bytes (823. M).
+Java Stack Size
+ThreadStackSize = 0 kilobytes. (weird…)
+The allocated heap memory size is almost same with the ergonomics result :
+
+#ergonomics algorithm
+Initial heap size = 16384/64 = 256M
+Maximum heap size = 16384/4 = 4096M
+Copy
+5. Suggested Java Memory
+Below is my suggested value for a small to medium Java application 🙂
+
+Heap = -Xms512m -Xmx1024m
+PermGen = -XX:PermSize=64m -XX:MaxPermSize=128m
+Thread = -Xss512k
+P.S For most Java projects, 512k for a thread is sufficient.
+
+$ java -XX:+PrintFlagsFinal -Xms512m -Xmx1024m -Xss512k -XX:PermSize=64m -XX:MaxPermSize=128m
+	-version | grep -iE 'HeapSize|PermSize|ThreadStackSize'
+
+    uintx InitialHeapSize                          := 536870912       {product}
+    uintx MaxHeapSize                              := 1073741824      {product}
+    uintx PermSize                                 := 67108864        {pd product}  
+    uintx MaxPermSize                              := 134217728       {pd product}  
+     intx ThreadStackSize                          := 512             {pd product}
+Copy
+6. FAQs
+Q. What is -version?
+A. Avoid the complaints from Java compiler, replace the “-version” with your Java application name.
+
+$ java -XX:+PrintFlagsFinal {your-java-program} | grep HeapSize
+Copy
+Q. What is -XX:+PrintCommandLineFlags?
+A. This -XX:+PrintCommandLineFlags is used to print out the values that modified by VM only (indicated by this := symbol).
+
+7. Conclusion
+Finally, the default values of heap memory, perm gem and stack size is different from each JVMs, do not expect JVM will assign the optimal values for your Java application. The best practice is found out your memory detail, then fine tune the values accordingly.
+
+Just some find out and sharing, do let me know your comment.
+
+References
+hello bots
+heap size perm gen
